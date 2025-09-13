@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Loja de Bolsas</title>
+  <style>
+    body { 
+      font-family: Arial, sans-serif; 
+      margin: 0; 
+      padding: 0; 
+      background: #cce5ff; /* azul claro */
+    }
+    header { 
+      background: #0056b3; 
+      color: #fff; 
+      padding: 15px; 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center; 
+      border-bottom: 4px solid #003d80; 
+    }
+    h1 { margin: 0; }
+    .filtros { display: flex; gap: 10px; }
+    .filtros input, .filtros select { 
+      padding: 8px; 
+      border-radius: 5px; 
+      border: 2px solid #0056b3; 
+    }
+    main { 
+      display: flex; 
+      gap: 20px; 
+      flex-wrap: wrap; 
+      justify-content: center; 
+      padding: 20px; 
+    }
+    .produto { 
+      background: #fff; 
+      border: 3px solid #0056b3; 
+      border-radius: 15px; 
+      width: 220px; 
+      padding: 15px; 
+      text-align: center; 
+      box-shadow: 0 3px 8px rgba(0,0,0,0.2); 
+      transition: transform 0.2s; 
+    }
+    .produto:hover { transform: scale(1.05); }
+    .produto img { 
+      max-width: 100%; 
+      border-radius: 10px; 
+    }
+    .produto h3 { margin: 10px 0; }
+    .produto p { color: #444; margin: 5px 0; }
+    button { 
+      background: #0056b3; 
+      border: none; 
+      padding: 10px; 
+      color: #fff; 
+      border-radius: 8px; 
+      cursor: pointer; 
+      width: 100%; 
+      font-weight: bold;
+    }
+    button:hover { background: #003d80; }
+    #carrinho { 
+      position: fixed; 
+      right: 20px; 
+      top: 100px; 
+      background: #fff; 
+      border: 3px solid #0056b3; 
+      width: 300px; 
+      border-radius: 15px; 
+      padding: 15px; 
+      box-shadow: 0 3px 8px rgba(0,0,0,0.3); 
+    }
+    #carrinho h2 { margin-top: 0; }
+    #carrinho ul { 
+      list-style: none; 
+      padding: 0; 
+      margin: 0; 
+      max-height: 200px; 
+      overflow-y: auto; 
+    }
+    #carrinho li { border-bottom: 1px solid #ddd; padding: 5px 0; }
+    #total { font-weight: bold; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>👜 Loja de Bolsas</h1>
+    <div class="filtros">
+      <input type="text" id="busca" placeholder="Buscar bolsa...">
+      <select id="categoria">
+        <option value="todas">Todas</option>
+        <option value="couro">Couro</option>
+        <option value="praia">Praia</option>
+        <option value="mochila">Mochilas</option>
+        <option value="gif">GIFs Animados</option>
+      </select>
+    </div>
+  </header>
+
+  <main id="produtos"></main>
+
+  <aside id="carrinho">
+    <h2>🛒 Meu Carrinho</h2>
+    <ul id="listaCarrinho"></ul>
+    <p>Total: R$ <span id="total">0</span></p>
+  </aside>
+
+  <script>
+    const produtos = [
+      { nome: "Bolsa de Couro Clássica", preco: 150, categoria: "couro", imagem: "https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&w=400&q=80" },
+      { nome: "Bolsa de Praia Floral", preco: 90, categoria: "praia", imagem: "https://images.unsplash.com/photo-1620799140408-edc6dcb5d327?auto=format&fit=crop&w=400&q=80" },
+      { nome: "Mochila Feminina Casual", preco: 120, categoria: "mochila", imagem: "https://images.unsplash.com/photo-1590874103328-eac38a683ce7?auto=format&fit=crop&w=400&q=80" },
+      { nome: "Bolsa de Couro Premium", preco: 250, categoria: "couro", imagem: "https://images.unsplash.com/photo-1522336572468-97b06e8ef143?auto=format&fit=crop&w=400&q=80" },
+      { nome: "Mochila Estilo Urbano", preco: 100, categoria: "mochila", imagem: "https://images.unsplash.com/photo-1618453292439-8dff1f1d1f88?auto=format&fit=crop&w=400&q=80" },
+      { nome: "Bolsa de Praia Rústica", preco: 110, categoria: "praia", imagem: "https://images.unsplash.com/photo-1620799139011-1a8b5d2c8c51?auto=format&fit=crop&w=400&q=80" },
+      // Produtos com GIFs animados 🎞
+      { nome: "Bolsa Fashion Animada", preco: 180, categoria: "gif", imagem: "https://media.tenor.com/y2JXkY1pXkwAAAAM/bag-purse.gif" },
+      { nome: "Bolsa Rosa Animada", preco: 200, categoria: "gif", imagem: "https://media.tenor.com/vXj2YMBX0x4AAAAM/purse-fashion.gif" },
+      { nome: "Mochila Animada Estilosa", preco: 160, categoria: "gif", imagem: "https://media.tenor.com/hy2PgZ0m5o0AAAAM/backpack-bag.gif" }
+    ];
+
+    let carrinho = [];
+
+    function renderizarProdutos(filtroTexto = "", filtroCategoria = "todas") {
+      const container = document.getElementById("produtos");
+      container.innerHTML = "";
+
+      const filtrados = produtos.filter(p => {
+        const buscaOk = p.nome.toLowerCase().includes(filtroTexto.toLowerCase());
+        const categoriaOk = filtroCategoria === "todas" || p.categoria === filtroCategoria;
+        return buscaOk && categoriaOk;
+      });
+
+      if (filtrados.length === 0) {
+        container.innerHTML = "<p>Nenhum produto encontrado.</p>";
+        return;
+      }
+
+      filtrados.forEach(p => {
+        const div = document.createElement("div");
+        div.className = "produto";
+        div.innerHTML = `
+          <img src="${p.imagem}" alt="${p.nome}">
+          <h3>${p.nome}</h3>
+          <p>Categoria: ${p.categoria}</p>
+          <p>R$ ${p.preco}</p>
+          <button onclick="adicionarCarrinho('${p.nome}', ${p.preco})">Adicionar</button>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function adicionarCarrinho(nome, preco) {
+      carrinho.push({ nome, preco });
+      atualizarCarrinho();
+    }
+
+    function atualizarCarrinho() {
+      const lista = document.getElementById("listaCarrinho");
+      lista.innerHTML = "";
+      let total = 0;
+      carrinho.forEach(item => {
+        const li = document.createElement("li");
+        li.textContent = `${item.nome} - R$ ${item.preco}`;
+        lista.appendChild(li);
+        total += item.preco;
+      });
+      document.getElementById("total").textContent = total;
+    }
+
+    document.getElementById("busca").addEventListener("input", (e) => {
+      renderizarProdutos(e.target.value, document.getElementById("categoria").value);
+    });
+
+    document.getElementById("categoria").addEventListener("change", (e) => {
+      renderizarProdutos(document.getElementById("busca").value, e.target.value);
+    });
+
+    // Inicializa com todos os produtos
+    renderizarProdutos();
+  </script>
+</body>
+</html>
